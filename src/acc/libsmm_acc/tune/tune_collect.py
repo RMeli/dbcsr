@@ -49,6 +49,7 @@ def main(tune_dir=Path(".")):
     winners = dict()
 
     n_errors = 0
+    re_run = []
     for dir in sorted(tune_dir.glob("tune_*"), key=tune_sort_key):
         if not dir.is_dir():
             continue
@@ -66,7 +67,7 @@ def main(tune_dir=Path(".")):
                 )
                 n_errors += 1
             else:
-                n_errors += process_log(log_fpath, mnk, winners)
+                n_errors += process_log(log_fpath, mnk, winners, re_run)
 
     if n_errors > 0:
         print(f"WARNING: Found {int(n_errors)} issues, check above messages.")
@@ -94,20 +95,25 @@ def main(tune_dir=Path(".")):
     print("\n")
     print("Wrote", new_file)
 
+    for run in re_run:
+        print(run)
+
 
 # ===============================================================================
-def process_log(log_fn: Path, mnk, winners):
+def process_log(log_fn: Path, mnk, winners, re_run):
     print(f"Reading {log_fn}")
 
     content = log_fn.read_text()
     m = re_errors.search(content)
     if not m:
         winners[mnk].incomplete += 1
+        mnk_name = f"{mnk[0]}x{mnk[1]}x{mnk[2]}"
         print(
             "WARNING: Found incomplete log:",
             log_fn,
-            ", please re-run (cd tune_mxnxk; sbatch tune_mxnxk.job)",
+            f", please re-run (cd tune_{mnk_name}; sbatch tune_{mnk_name}.job; cd ..)",
         )
+        re_run.append(f"cd tune_{mnk_name}; sbatch tune_{mnk_name}.job; cd ..")
         return 1
 
     n_errors = int(m.group(1))

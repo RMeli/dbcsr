@@ -267,21 +267,16 @@ def gen_jobfile(outdir, compiler, m, n, k, cpus_per_task, max_num_nodes=0):
     output = f"""\
 #!/bin/bash -l
 #SBATCH --nodes={int(num_nodes)}
-#SBATCH --exclusive
 #SBATCH --ntasks-per-core=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task={int(cpus_per_task)}
 #SBATCH --time={time}
-#SBATCH --account=jiek61
-#SBATCH --partition=dc-gpu
-#SBATCH --cuda-mps
-#SBATCH --gres=gpu:4
-module purge
-module add GCC/11.3.0
-module add ParaStationMPI/5.8.0-1-mt
-module add CUDA/11.7
-module list
+#SBATCH --uenv=/bret/scratch/cscs/rmeli/squashfs/cp2k.squashfs
+
+export CUDA_VISIBLE_DEVICES=0
+
 nvidia-smi
+
 t1=$(date +%s)
 """
     # Compilation
